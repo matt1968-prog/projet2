@@ -113,8 +113,5 @@ with open ('livre1.csv','w', encoding='utf-8') as livre1:
     #print("URL livre : ",product_page_url)
     ligne=[title, number_available, product_description, price_excluding_taxes, price_including_taxes, product_page_url, universal_product_code, image_url]
     writer.writerow(ligne)
-    #livre1.write('Titre, Quantite, Description\n')
-    
-    
-    #livre1.write('titre.text, quantite,description')
+   
     
