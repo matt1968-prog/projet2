@@ -16,8 +16,6 @@ titre = soup.find('div', class_="col-sm-6 product_main")
 title=titre('h1')[0]
 title=title.text
 print("Titre : ",title)
-#print(i.title) #ou books.string  ou str(books)
-#titles.append(livre_i)
 
 #EXEMPLAIRES EN STOCK DU LIVRE
 stock= soup.find('table', class_="table table-striped") 
@@ -29,22 +27,16 @@ print("Exemplaire(s) disponible(s) :", number_available)
 
 #URL LIVRE1
 url = "http://books.toscrape.com/catalogue/category/books_1/index.html"
-page = requests.get(url)
+page2 = requests.get(url)
+soup2 = BeautifulSoup(page2.text, 'html.parser') #ou page.content
+url1= soup2.find('article', class_="product_pod") 
 
-soup = BeautifulSoup(page.text, 'html.parser') #ou page.content
-
-url= soup.find('article', class_="product_pod") 
-
-url2=url.find('a')
+url2=url1.find('a')
 product_page_url=url2.get('href')
 print (product_page_url)
 print("URL du livre : ",product_page_url)
 
 #PRIX SANS TAXES LIVRE1
-url ="http://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html"
-page = requests.get(url)
-soup = BeautifulSoup(page.text, 'html.parser') #ou page.content
-
 prix=soup.find('table', class_="table table-striped")
 prix1=prix.find_all('tr')
 valeur_brute=(prix1[3].td).text
@@ -62,18 +54,6 @@ print("Prix avec taxes :", price_including_taxes)
 
 
 #UPC LIVRE1upc = soup.find('div', class_="content") 
-url = "http://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html"
-page = requests.get(url)
-#print(page.content)
-
-soup = BeautifulSoup(page.text, 'html.parser') #ou page.content
-#titre=soup.find('a')
-#print(titre.text) #.text retire le nom de la balise dans l'affichage
-
-#items=soup.findAll(class_="product_pod")
-#item=items[4]
-#print(item.title)
-
 upc_list=[]
 upc = soup.find('div', class_="content") 
 upc0=upc.find('div', id="content_inner")
@@ -92,9 +72,6 @@ description_finale=description.find('p', class_="")
 print("Description :", description_finale.text)
 
 ##URL IMAGE LIVRE1 
-url = "http://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html"
-page = requests.get(url)
-soup = BeautifulSoup(page.text, 'html.parser') #ou page.content
 url_image= soup.find('article', class_="product_page") 
 #print url_image
 #livre_i['title']=i.title
