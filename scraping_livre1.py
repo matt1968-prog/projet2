@@ -71,6 +71,26 @@ description = soup.find('div', class_="content")
 description_finale=description.find('p', class_="")
 print("Description :", description_finale.text)
 
+#RATING LIVRE1
+url = "http://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html"
+page = requests.get(url)
+#print(page.content)
+
+ratingBook ={"One":"1", "Two":"2", "Three":"3", "Four:":"4", "Five":"5"}
+#print (ratingBook)
+
+#for i in ratingBook:
+#print (ratingBook[i])
+
+rating=soup.find('div', class_="col-sm-6 product_main")
+rating2=soup.find('p', class_="star-rating")
+rating3=rating2.get('class')
+print("Rating final",rating3)#rating2=rating2[0]#.text_content()
+rating4=rating3[1] #correspond en nbre d'etoiles exprimé en lettres
+print("Nbre étoiles : ", rating4) #affiche Three
+review_rating=ratingBook.get(rating4) #on récupère la valeur associée à la clé rating4
+print("Etoiles en décimal ", review_rating)
+
 ##URL IMAGE LIVRE1 
 url_image= soup.find('article', class_="product_page") 
 #print url_image
@@ -81,14 +101,14 @@ print("URL image : ",url2.get('src'))
 
 #EXPORT dans fichier CSV
 with open ('livre1.csv','w', encoding='utf-8') as livre1:
-    en_tete = ["title", "number_available","product_description", "price_excluding_taxes", "price_including_taxes", "product_page_url", "universal_product_code", "image_url"]
+    en_tete = ["Titre", "Quantité disponible","Description produit", "Prix HT", "Prix TTC", "Étoiles (sur 5 max)", "URL page produit", "UPC (universal_product_code)", "URL image"]
     writer = csv.writer(livre1, delimiter=',')
     writer.writerow(en_tete)
     description_finale=description_finale.text
     product_description = description_finale.replace('.', '.\n')
     upc4=upc4.text
     #print("URL livre : ",product_page_url)
-    ligne=[title, number_available, product_description, price_excluding_taxes, price_including_taxes, product_page_url, universal_product_code, image_url]
+    ligne=[title, number_available, product_description, price_excluding_taxes, price_including_taxes, review_rating, product_page_url, universal_product_code, image_url]
     writer.writerow(ligne)
    
     
