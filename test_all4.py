@@ -82,7 +82,7 @@ def fetch_book_infos(book_url):
     #DESCRIPION
 
     desc1=soupBooks.find('div', class_="content")
-    if desc1.find('p', class_="")==None: #recherche de c
+    if desc1.find('p', class_="")==None: #recherche d'absence de commentaire (Alice in Wonderland)
         desc=""
     else: desc=desc1.find('p', class_="").text
     #print(desc)
@@ -153,7 +153,8 @@ def fetch_book_infos(book_url):
 
     #IMAGE URL
 
-    url= soupBooks.find('article', class_="product_pod") 
+    #url= soupBooks.find('article', class_="product_pod") version d'origine, fonctionne avec tout sauf Attic
+    url=soupBooks.find('div', class_="item active")
     url2=url.find('img')
     url3=(url2.get('src'))
     print("URL image : ", url3)
@@ -162,29 +163,38 @@ def fetch_book_infos(book_url):
     return book
 
 #EXPORT DANS FICHIERS CSV, UN FICHIER POUR CHAQUE CATÉGORIE
-def write_csv_category():
-    en_tete = ["title", "product_page_url","category", "product_description", "universal_product_code", "product_page_url", "price_excluding_taxes", "price_including_taxes"]
+def write_csv_categories():
+    en_tete = ["title", "product_page_url", "review rating", "category", "product_description", "universal_product_code", "price_excluding_taxes", "price_including_taxes"]
     
     for fichier in categories:
-        #pour créer un fichier catagorie
+        #créer un fichier pour chaque catégorie
         nom_fichier=fichier+".csv"   
-        with open (nom_fichier,'w', encoding='utf-8') as all:
+        """with open (nom_fichier,'w', encoding='utf-8') as all:
             writer = csv.writer(all, delimiter=',')
-            writer.writerow(en_tete)
+            writer.writerow(en_tete)"""
+        
+
+def write_csv_all():
+    en_tete = ["title", "product_page_url","category", "product_description", "universal_product_code", "product_page_url", "price_excluding_taxes", "price_including_taxes"]
+    category='Travel'
+    pass
            
 def main():
+    x=0
     categories = fetch_all_categories()
     for categorie in categories:
         livres=fetch_all_books(categorie['url'])
         for book_url in livres:
             book_infos=fetch_book_infos(book_url)
             categorie['books'].append(book_infos)
+            x+=1
         print ("Livres : ",livres)    #contient les titres et leur URL uniquement
+        #write_csv=write_csv_categories()
         #break
         
         #print("Categories : ",categories)
         #print("Category : ",categorie) 
-         
+    print("Nombre total de livres : ", x)
 #write_csv(categories)
 
 
