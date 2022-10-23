@@ -1,3 +1,4 @@
 @@ -0,0 +1,2 @@
 # projet2
-Ce fichier python permet d'extraire (scraping) toutes les informations relatives à un seul livre (A light in the Attic) et de les enregistrer dans un fichier csv.
+Ce fichier python permet d'extraire (scraping) toutes les informations relatives à chacune des catégories
+(un fichier csv par catégorie) ou à l'ensemble des catégories (création d'un seul fichier csv).
