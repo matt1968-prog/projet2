@@ -151,12 +151,17 @@ def fetch_book_infos(book_url):
     upc4=upc3.find('td')
     book['UPC']=upc4.text
 
-    #IMAGE URL
+    #IMAGE URL + IMPORTATION FICHIER IMAGE
 
     #url= soupBooks.find('article', class_="product_pod") version d'origine, fonctionne avec tout sauf Attic
     url=soupBooks.find('div', class_="item active")
     url2=url.find('img')
     url3=(url2.get('src'))
+    file_name=book['title']+".jpg"
+    file_name=file_name.replace(":", " ") #On supprime les ":" pour avoir un nom de fichier valide
+    print("Nom du fichier : ",file_name)
+    file_path=book['url']
+    open(file_name,'w')
     print("URL image : ", url3)
     book['URL de image']=url3
 
@@ -176,7 +181,7 @@ def write_csv_categories():
         
 
 def write_csv_all(categories):
-    en_tete = ["title", "product_page_url","category", "product_description", "universal_product_code", "product_page_url", "price_excluding_taxes", "price_including_taxes"]
+    en_tete = ["title", "product_page_url","category", "product_description", "number_available","universal_product_code", "image_url", "price_excluding_taxes", "price_including_taxes"]
     
     for category in categories:
         pass
@@ -193,12 +198,12 @@ def main():
             x+=1
         print ("Livres : ",livres)    #contient les titres et leur URL uniquement
         #write_csv=write_csv_categories(categories)
-        #break
-    for cat in categories:
-        nom_categorie=cat+".csv"  
+        break
+    """for cat in categories:
+        nom_categorie=str(cat)+".csv"  
         print("Catégorie : ",nom_categorie) 
         #print("Categories : ",categories)
-        #print("Category : ",categorie) 
+        #print("Category : ",categorie) """
     print("Nombre total de livres : ", x)
 #write_csv(categories)
 
