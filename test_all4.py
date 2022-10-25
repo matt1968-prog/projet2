@@ -168,20 +168,23 @@ def write_csv_categories():
     
     for fichier in categories:
         #créer un fichier pour chaque catégorie
-        nom_fichier=fichier+".csv"   
-        """with open (nom_fichier,'w', encoding='utf-8') as all:
-            writer = csv.writer(all, delimiter=',')
-            writer.writerow(en_tete)"""
+        nom_fichier=fichier+".csv"  
+        print(nom_fichier) 
+        #with open (nom_fichier,'w', encoding='utf-8') as all:
+        #    writer = csv.writer(all, delimiter=',')
+        #    writer.writerow(en_tete)
         
 
-def write_csv_all():
+def write_csv_all(categories):
     en_tete = ["title", "product_page_url","category", "product_description", "universal_product_code", "product_page_url", "price_excluding_taxes", "price_including_taxes"]
-    category='Travel'
-    pass
+    
+    for category in categories:
+        pass
            
 def main():
     x=0
     categories = fetch_all_categories()
+    print("Catégories trouvées : ",categories) #'name: nom catégorie 'url': url catégorie
     for categorie in categories:
         livres=fetch_all_books(categorie['url'])
         for book_url in livres:
@@ -189,9 +192,11 @@ def main():
             categorie['books'].append(book_infos)
             x+=1
         print ("Livres : ",livres)    #contient les titres et leur URL uniquement
-        #write_csv=write_csv_categories()
+        #write_csv=write_csv_categories(categories)
         #break
-        
+    for cat in categories:
+        nom_categorie=cat+".csv"  
+        print("Catégorie : ",nom_categorie) 
         #print("Categories : ",categories)
         #print("Category : ",categorie) 
     print("Nombre total de livres : ", x)
