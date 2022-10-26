@@ -157,15 +157,16 @@ def fetch_book_infos(book_url):
     url=soupBooks.find('div', class_="item active")
     url2=url.find('img')
     url3=(url2.get('src'))
-    """file_name=book['title']+".jpg"
+    file_name=book['title']+".jpg"
     file_name=file_name.replace(":", " ") #On supprime les ":" pour avoir un nom de fichier valide
     file_name=file_name.replace("*", " ")
     file_name=file_name.replace("?", " ")
-    file_name=file_name.replace("", " ")
+    file_name=file_name.replace('"', " ")
     print("Nom du fichier : ",file_name)
     file_path=book['url']
-    f=open(file_name,'w')
-    f.close()"""
+    """with open(file_name,'wb') as f:
+        pass
+        f.close()"""
     print("URL image : ", url3)
     book['URL de image']=url3
 
@@ -185,7 +186,7 @@ def write_csv_categories(categories):
             writer = csv.writer(all, delimiter=',')
             writer.writerow(en_tete)
             for book in categorie['books']:
-                writer.writerow([book['title'], book['url'], book['review rating'], categorie['name'], book['description'], book['UPC'], book['price EXCLUDING taxes'], ['price INCLUDING taxes'] ])
+                writer.writerow([book['title'], book['url'], book['review rating'], categorie['name'], book['description'], book['UPC'], book['price EXCLUDING taxes'], book['price INCLUDING taxes'] ])
 
 #EXPORT DANS UN SEUL FICHIER CSV DE TOUTES LES CATÉGORIES
 def write_csv_all(categories):
