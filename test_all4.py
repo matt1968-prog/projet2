@@ -153,7 +153,6 @@ def fetch_book_infos(book_url):
 
     #IMAGE URL + IMPORTATION FICHIER IMAGE
 
-    #url= soupBooks.find('article', class_="product_pod") version d'origine, fonctionne avec tout sauf Attic
     url=soupBooks.find('div', class_="item active")
     url2=url.find('img')
     url3=(url2.get('src'))
@@ -161,27 +160,27 @@ def fetch_book_infos(book_url):
     file_name=file_name.replace(":", " ") #On supprime les ":" pour avoir un nom de fichier valide
     print("Nom du fichier : ",file_name)
     file_path=book['url']
-    open(file_name,'w')
+    f=open(file_name,'w')
+    f.close()
     print("URL image : ", url3)
     book['URL de image']=url3
 
     return book
 
 #EXPORT DANS FICHIERS CSV, UN FICHIER POUR CHAQUE CATÉGORIE
-def write_csv_categories():
+def write_csv_categories(categories):
     en_tete = ["title", "product_page_url", "review rating", "category", "product_description", "universal_product_code", "price_excluding_taxes", "price_including_taxes"]
     
-    for fichier in categories:
+    for categorie in categories:
         #créer un fichier pour chaque catégorie
-        nom_fichier=fichier+".csv"  
+        nom_fichier=categorie['name']+".csv"  
         print(nom_fichier) 
-        #with open (nom_fichier,'w', encoding='utf-8') as all:
-        #    writer = csv.writer(all, delimiter=',')
-        #    writer.writerow(en_tete)
-        
-
+        with open (nom_fichier,'w', encoding='utf-8') as all:
+            writer = csv.writer(all, delimiter=',')
+            writer.writerow(en_tete)
+            
 def write_csv_all(categories):
-    en_tete = ["title", "product_page_url","category", "product_description", "number_available","universal_product_code", "image_url", "price_excluding_taxes", "price_including_taxes"]
+    en_tete = ["title", "product_page_url", "review_rating","category", "product_description", "number_available","universal_product_code", "image_url", "price_excluding_taxes", "price_including_taxes"]
     
     for category in categories:
         pass
@@ -198,6 +197,7 @@ def main():
             x+=1
         print ("Livres : ",livres)    #contient les titres et leur URL uniquement
         #write_csv=write_csv_categories(categories)
+        fichier_categorie= write_csv_categories(categories)   
         break
     """for cat in categories:
         nom_categorie=str(cat)+".csv"  
