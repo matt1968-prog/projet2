@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup as bs
 import csv
 import re
 from pprint import pprint
+import os
 
 #Définition des variables,listes et dictionnaires
 url = "http://books.toscrape.com/index.html" #"http://books.toscrape.com/catalogue/category/books_1/index.html"
@@ -156,15 +157,20 @@ def fetch_book_infos(book_url):
     url=soupBooks.find('div', class_="item active")
     url2=url.find('img')
     url3=(url2.get('src'))
-    file_name=book['title']+".jpg"
+    """file_name=book['title']+".jpg"
     file_name=file_name.replace(":", " ") #On supprime les ":" pour avoir un nom de fichier valide
+    file_name=file_name.replace("*", " ")
+    file_name=file_name.replace("?", " ")
+    file_name=file_name.replace("", " ")
     print("Nom du fichier : ",file_name)
     file_path=book['url']
     f=open(file_name,'w')
-    f.close()
+    f.close()"""
     print("URL image : ", url3)
     book['URL de image']=url3
 
+    #line=str(book['title']+book['url']+book['review rating']+book['description']+book['UPC']+book['price EXCLUDING taxes']+book['price INCLUDING taxes'])  #book n'est pas connu :NameError: name 'book' is not defined
+    #print("Ligne complète : ",line)
     return book
 
 #EXPORT DANS FICHIERS CSV, UN FICHIER POUR CHAQUE CATÉGORIE
@@ -173,12 +179,15 @@ def write_csv_categories(categories):
     
     for categorie in categories:
         #créer un fichier pour chaque catégorie
-        nom_fichier=categorie['name']+".csv"  
-        print(nom_fichier) 
-        with open (nom_fichier,'w', encoding='utf-8') as all:
+        nom_categorie=categorie['name']+".csv"  
+        print("Fichier créé pour la catégorie : ",nom_categorie) 
+        with open (nom_categorie,'w', encoding='utf-8') as all:
             writer = csv.writer(all, delimiter=',')
             writer.writerow(en_tete)
-            
+            for book in categorie['books']:
+                writer.writerow([book['title'], book['url'], book['review rating'], categorie['name'], book['description'], book['UPC'], book['price EXCLUDING taxes'], ['price INCLUDING taxes'] ])
+
+#EXPORT DANS UN SEUL FICHIER CSV DE TOUTES LES CATÉGORIES
 def write_csv_all(categories):
     en_tete = ["title", "product_page_url", "review_rating","category", "product_description", "number_available","universal_product_code", "image_url", "price_excluding_taxes", "price_including_taxes"]
     
@@ -188,22 +197,19 @@ def write_csv_all(categories):
 def main():
     x=0
     categories = fetch_all_categories()
-    print("Catégories trouvées : ",categories) #'name: nom catégorie 'url': url catégorie
+    #print("Catégories trouvées : ",categories) #'name: nom catégorie 'url': url catégorie
     for categorie in categories:
         livres=fetch_all_books(categorie['url'])
         for book_url in livres:
             book_infos=fetch_book_infos(book_url)
             categorie['books'].append(book_infos)
+            #print("Categorie :", categorie)
             x+=1
         print ("Livres : ",livres)    #contient les titres et leur URL uniquement
+        #break
         #write_csv=write_csv_categories(categories)
-        fichier_categorie= write_csv_categories(categories)   
-        break
-    """for cat in categories:
-        nom_categorie=str(cat)+".csv"  
-        print("Catégorie : ",nom_categorie) 
-        #print("Categories : ",categories)
-        #print("Category : ",categorie) """
+    fichier_categorie= write_csv_categories(categories)   
+        #break
     print("Nombre total de livres : ", x)
 #write_csv(categories)
 
