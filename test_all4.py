@@ -2,8 +2,9 @@ import requests
 from bs4 import BeautifulSoup as bs
 import csv
 import re
-from pprint import pprint
 import os
+import shutil
+from PIL import Image
 
 #Définition des variables,listes et dictionnaires
 url = "http://books.toscrape.com/index.html" #"http://books.toscrape.com/catalogue/category/books_1/index.html"
@@ -24,6 +25,8 @@ def fetch_all_categories():
 
     for data in datas: 
         categorie_livre=data.a.text.strip()
+        os.mkdir(categorie_livre)
+        print("Catégorie créée :",categorie_livre)
         x+=1
         print("Catégorie : ",categorie_livre)
         adresse_URL=data.find('a')
@@ -51,7 +54,7 @@ def fetch_all_books(url_categorie): #ds cette fct, recherche de balise <Next>
         url_livre=lien_livre.article.h3.a.get('href')
         url_livre=url_livre.replace('../../../', "http://books.toscrape.com/catalogue/")
         books.append(url_livre)
-        print("URL : ",url_livre)#lien_livre.article.h3.a.get('href'))
+        #print("URL : ",url_livre)#lien_livre.article.h3.a.get('href'))
     #RECHERCHER SI PAGE SUP
     next=soup.find('li', class_="next")
     if next!=None:
@@ -62,7 +65,7 @@ def fetch_all_books(url_categorie): #ds cette fct, recherche de balise <Next>
         print(next_page2)
         page_sup=url_categorie+next_page2
         print(page_sup)
-        books+=fetch_all_books (page_sup) #+= pour concaténer
+        books+=fetch_all_books (page_sup) #+= pour concaténer, récursion
     else: print("PAS AUTRE PAGE")
 
     return books
@@ -78,7 +81,7 @@ def fetch_book_infos(book_url):
 
     book['url']=book_url
     book['title']= soupBooks.find('h1').text 
-    print ("Titre : ", book['title'])
+    #print ("Titre : ", book['title'])
     
     #DESCRIPION
 
@@ -108,7 +111,7 @@ def fetch_book_infos(book_url):
     #print(valeur_brute)
     valeur_brute=valeur_brute[1:]
     valeur = re.findall(r'\d+\.\d+', valeur_brute)[0]
-    print("Prix sans taxes : ", valeur)
+    #print("Prix sans taxes : ", valeur)
     book['price EXCLUDING taxes']=valeur
 
     #PRICE INCLUDING TAXES
@@ -119,7 +122,7 @@ def fetch_book_infos(book_url):
     #print(valeur_brute)
     valeur_brute=valeur_brute[1:]
     valeur = re.findall(r'\d+\.\d+', valeur_brute)[0]
-    print("Prix avec taxes : ", valeur)
+    #print("Prix avec taxes : ", valeur)
     book['price INCLUDING taxes']=valeur
 
     #EXEMPLAIRES DISPOS
@@ -129,7 +132,7 @@ def fetch_book_infos(book_url):
     stock2=(stock1[5].td).text
     #print(stock2)
     quantite = re.findall(r'\d+', stock2)[0]
-    print("Stock : ",quantite)
+    #print("Stock : ",quantite)
     book['stock']=quantite
 
     #REVIEW RATING
@@ -139,7 +142,7 @@ def fetch_book_infos(book_url):
     popularite3=popularite2.get('class')
     popularite4=popularite3[1]
     nbre_etoiles=RATING_BOOK.get(popularite4)
-    print("Rating : ",nbre_etoiles)
+    #print("Rating : ",nbre_etoiles)
     book['review rating']=nbre_etoiles
     
     #UPC
@@ -162,12 +165,37 @@ def fetch_book_infos(book_url):
     file_name=file_name.replace("*", " ")
     file_name=file_name.replace("?", " ")
     file_name=file_name.replace('"', " ")
-    print("Nom du fichier : ",file_name)
+    #print("Nom du fichier : ",file_name)
     file_path=book['url']
+
+    img = Image.open(requests.get(file_path, stream = True).raw)
+    img.save(file_name)
+
+    """url = file_path
+    response = requests.get(url)
+    if response.status_code == 200:
+        with open("/Users/apple/Desktop/sample.jpg", 'wb') as f:
+            f.write(response.content)"""
+
+    #url = 'http://example.com/img.png'
+    """response = requests.get(file_path, stream=True)
+    with open(file_name, 'wb') as out_file:
+        shutil.copyfileobj(response.raw, out_file)
+        del response"""
+
+    """r = requests.get(settings.STATICMAP_URL.format(**data), stream=True)
+    if r.status_code == 200:
+        with open(file_path, 'wb') as f:
+            for chunk in r.iter_content(1024):
+                f.write(chunk)"""
+
+#Note that you need to open the destination file in binary mode to ensure python doesn't try 
+#and translate newlines for you. We also set stream=True so that requests doesn't download the whole image 
+#into memory first.
     """with open(file_name,'wb') as f:
         pass
         f.close()"""
-    print("URL image : ", url3)
+    #print("URL image : ", url3)
     book['URL de image']=url3
 
     #line=str(book['title']+book['url']+book['review rating']+book['description']+book['UPC']+book['price EXCLUDING taxes']+book['price INCLUDING taxes'])  #book n'est pas connu :NameError: name 'book' is not defined
@@ -179,22 +207,17 @@ def write_csv_categories(categories):
     en_tete = ["title", "product_page_url", "review rating", "category", "product_description", "universal_product_code", "price_excluding_taxes", "price_including_taxes"]
     
     for categorie in categories:
-        #créer un fichier pour chaque catégorie
-        nom_categorie=categorie['name']+".csv"  
-        print("Fichier créé pour la catégorie : ",nom_categorie) 
-        with open (nom_categorie,'w', encoding='utf-8') as all:
+        #créer un dossier pour chaque catégorie
+        #os.mkdir(categorie['name'])
+        fichier_csv=categorie['name']+"/"+categorie['name']+".csv"
+        #print("Fichier créé pour la catégorie : ",fichier_csv) 
+        with open (fichier_csv,'a', encoding='utf-8') as all:
             writer = csv.writer(all, delimiter=',')
             writer.writerow(en_tete)
+            print("Fichier écrit : ",fichier_csv)
             for book in categorie['books']:
                 writer.writerow([book['title'], book['url'], book['review rating'], categorie['name'], book['description'], book['UPC'], book['price EXCLUDING taxes'], book['price INCLUDING taxes'] ])
 
-#EXPORT DANS UN SEUL FICHIER CSV DE TOUTES LES CATÉGORIES
-def write_csv_all(categories):
-    en_tete = ["title", "product_page_url", "review_rating","category", "product_description", "number_available","universal_product_code", "image_url", "price_excluding_taxes", "price_including_taxes"]
-    
-    for category in categories:
-        pass
-           
 def main():
     x=0
     categories = fetch_all_categories()
@@ -206,10 +229,9 @@ def main():
             categorie['books'].append(book_infos)
             #print("Categorie :", categorie)
             x+=1
-        print ("Livres : ",livres)    #contient les titres et leur URL uniquement
-        #break
-        #write_csv=write_csv_categories(categories)
-    fichier_categorie= write_csv_categories(categories)   
+        #print ("Livres : ",livres)    #contient les titres et leur URL uniquement
+    write_csv=write_csv_categories(categories)
+        #fichier_categorie= write_csv_categories(categories)   
         #break
     print("Nombre total de livres : ", x)
 #write_csv(categories)
