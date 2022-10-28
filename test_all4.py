@@ -25,19 +25,24 @@ def fetch_all_categories():
 
     for data in datas: 
         categorie_livre=data.a.text.strip()
-        os.mkdir(categorie_livre)
-        print("Catégorie créée :",categorie_livre)
-        x+=1
-        print("Catégorie : ",categorie_livre)
-        adresse_URL=data.find('a')
-        adresse2=adresse_URL.get('href')
-        adresse3=url_base_site+adresse2
-        adresse_categorie=adresse3.replace("../","")
-        print("URL : ", adresse_categorie)#.replace("../",""))
-        #insertion dans la liste
-        adresses.append(adresse_categorie) 
-        #insertion dans le dictionnaire
-        categories.append({'name':categorie_livre, 'url': adresse_categorie, 'books':[]}) 
+        
+        if categorie_livre!="Add a comment":
+            os.mkdir(categorie_livre)
+            data_folder=categorie_livre+"/data"
+            #print data
+            os.mkdir(data_folder)
+            print("Catégorie créée :",categorie_livre)
+            x+=1
+            #print("Catégorie : ",categorie_livre)
+            adresse_URL=data.find('a')
+            adresse2=adresse_URL.get('href')
+            adresse3=url_base_site+adresse2
+            adresse_categorie=adresse3.replace("../","")
+            print("URL : ", adresse_categorie)#.replace("../",""))
+            #insertion dans la liste
+            #adresses.append(adresse_categorie) 
+            #insertion dans le dictionnaire
+            categories.append({'name':categorie_livre, 'url': adresse_categorie, 'books':[]}) 
     return categories    
 
 #TITRES DES LIVRES DE TOUTES LES CATÉGORIES, CATÉGORIE PAR CATÉGORIE
@@ -46,7 +51,7 @@ def fetch_all_books(url_categorie): #ds cette fct, recherche de balise <Next>
     books=[]
     response = requests.get(url_categorie)
     soup = bs(response.text, 'html.parser')
-
+    print("livres de la catégorie : ",books)
     #EXCTRACTION DES LIVRES DE TOUTES LES CATÉGORIES
     url_des_livres=soup.find_all('li', class_="col-xs-6 col-sm-4 col-md-3 col-lg-3")
     
@@ -67,7 +72,7 @@ def fetch_all_books(url_categorie): #ds cette fct, recherche de balise <Next>
         print(page_sup)
         books+=fetch_all_books (page_sup) #+= pour concaténer, récursion
     else: print("PAS AUTRE PAGE")
-
+    print("livres : ", books)
     return books
 
 #EXTRACTION TOUTES LES INFOS D'UN SEUL LIVRE
@@ -168,9 +173,6 @@ def fetch_book_infos(book_url):
     #print("Nom du fichier : ",file_name)
     file_path=book['url']
 
-    img = Image.open(requests.get(file_path, stream = True).raw)
-    img.save(file_name)
-
     """url = file_path
     response = requests.get(url)
     if response.status_code == 200:
@@ -208,10 +210,8 @@ def write_csv_categories(categories):
     
     for categorie in categories:
         #créer un dossier pour chaque catégorie
-        #os.mkdir(categorie['name'])
         fichier_csv=categorie['name']+"/"+categorie['name']+".csv"
-        #print("Fichier créé pour la catégorie : ",fichier_csv) 
-        with open (fichier_csv,'a', encoding='utf-8') as all:
+        with open (fichier_csv,'a', encoding='utf-8', newline='') as all:
             writer = csv.writer(all, delimiter=',')
             writer.writerow(en_tete)
             print("Fichier écrit : ",fichier_csv)
@@ -231,8 +231,6 @@ def main():
             x+=1
         #print ("Livres : ",livres)    #contient les titres et leur URL uniquement
     write_csv=write_csv_categories(categories)
-        #fichier_categorie= write_csv_categories(categories)   
-        #break
     print("Nombre total de livres : ", x)
 #write_csv(categories)
 
