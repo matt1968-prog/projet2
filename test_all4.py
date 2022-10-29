@@ -3,8 +3,7 @@ from bs4 import BeautifulSoup as bs
 import csv
 import re
 import os
-import shutil
-from PIL import Image
+import os.path
 
 #Définition des variables,listes et dictionnaires
 url = "http://books.toscrape.com/index.html" #"http://books.toscrape.com/catalogue/category/books_1/index.html"
@@ -27,13 +26,12 @@ def fetch_all_categories():
         categorie_livre=data.a.text.strip()
         
         if categorie_livre!="Add a comment":
-            os.mkdir(categorie_livre)
-            data_folder=categorie_livre+"/data"
-            #print data
-            os.mkdir(data_folder)
-            print("Catégorie créée :",categorie_livre)
-            x+=1
-            #print("Catégorie : ",categorie_livre)
+            if not os.path.exists(categorie_livre):
+                os.mkdir(categorie_livre)
+                data_folder=categorie_livre+"/data"
+                #print data
+                os.mkdir(data_folder)
+                print("Catégorie créée :",categorie_livre)
             adresse_URL=data.find('a')
             adresse2=adresse_URL.get('href')
             adresse3=url_base_site+adresse2
@@ -68,7 +66,9 @@ def fetch_all_books(url_categorie): #ds cette fct, recherche de balise <Next>
         next_page=next.find('a')
         next_page2=next_page.get('href')
         print(next_page2)
-        page_sup=url_categorie+next_page2
+        #page_sup=url_categorie+next_page2
+        base_url=url_categorie[:url_categorie.rfind('/')]
+        page_sup=f'{base_url}/{next_page2}'
         print(page_sup)
         books+=fetch_all_books (page_sup) #+= pour concaténer, récursion
     else: print("PAS AUTRE PAGE")
@@ -76,8 +76,7 @@ def fetch_all_books(url_categorie): #ds cette fct, recherche de balise <Next>
     return books
 
 #EXTRACTION TOUTES LES INFOS D'UN SEUL LIVRE
-def fetch_book_infos(book_url):
-    #print("="*10)
+def fetch_book_infos(book_url, categorie_name):
     response=requests.get(book_url) 
     soupBooks= bs(response.text,'html.parser') #bs = alias de BeautifulSoup
     book={}
@@ -104,7 +103,6 @@ def fetch_book_infos(book_url):
     prix2=prix1.find('p')
     prix3=prix2.text[1:] #pour retirer le caractère 'Â' au début
     prix_final=prix3[1:] #on peut conserver le symbole de la devise
-    #print("Prix final",prix_final)
     book['price']=prix_final
 
     #PRICE EXCLUDING TAXES
@@ -121,8 +119,6 @@ def fetch_book_infos(book_url):
 
     #PRICE INCLUDING TAXES
 
-    #prix=soupBooks.find('table', class_="table table-striped")
-    #prix1=prix.find_all('tr')
     valeur_brute=(prix1[3].td).text # A modifier
     #print(valeur_brute)
     valeur_brute=valeur_brute[1:]
@@ -163,45 +159,17 @@ def fetch_book_infos(book_url):
     #IMAGE URL + IMPORTATION FICHIER IMAGE
 
     url=soupBooks.find('div', class_="item active")
-    url2=url.find('img')
-    url3=(url2.get('src'))
-    file_name=book['title']+".jpg"
-    file_name=file_name.replace(":", " ") #On supprime les ":" pour avoir un nom de fichier valide
-    file_name=file_name.replace("*", " ")
-    file_name=file_name.replace("?", " ")
-    file_name=file_name.replace('"', " ")
-    #print("Nom du fichier : ",file_name)
-    file_path=book['url']
+    url=url.find('img').get('src')    
+    file_path=url.replace('../../', url_base_site)
+    print("URL image : ",file_path)
 
-    """url = file_path
-    response = requests.get(url)
-    if response.status_code == 200:
-        with open("/Users/apple/Desktop/sample.jpg", 'wb') as f:
-            f.write(response.content)"""
-
-    #url = 'http://example.com/img.png'
-    """response = requests.get(file_path, stream=True)
-    with open(file_name, 'wb') as out_file:
-        shutil.copyfileobj(response.raw, out_file)
-        del response"""
-
-    """r = requests.get(settings.STATICMAP_URL.format(**data), stream=True)
+    r = requests.get(file_path, stream=True)
     if r.status_code == 200:
-        with open(file_path, 'wb') as f:
+        image_path=file_path[file_path.rfind('/'):]
+        image_path=f'{categorie_name}/data{image_path}'
+        with open(image_path, 'wb') as f:
             for chunk in r.iter_content(1024):
-                f.write(chunk)"""
-
-#Note that you need to open the destination file in binary mode to ensure python doesn't try 
-#and translate newlines for you. We also set stream=True so that requests doesn't download the whole image 
-#into memory first.
-    """with open(file_name,'wb') as f:
-        pass
-        f.close()"""
-    #print("URL image : ", url3)
-    book['URL de image']=url3
-
-    #line=str(book['title']+book['url']+book['review rating']+book['description']+book['UPC']+book['price EXCLUDING taxes']+book['price INCLUDING taxes'])  #book n'est pas connu :NameError: name 'book' is not defined
-    #print("Ligne complète : ",line)
+                f.write(chunk)
     return book
 
 #EXPORT DANS FICHIERS CSV, UN FICHIER POUR CHAQUE CATÉGORIE
@@ -225,10 +193,12 @@ def main():
     for categorie in categories:
         livres=fetch_all_books(categorie['url'])
         for book_url in livres:
-            book_infos=fetch_book_infos(book_url)
+            book_infos=fetch_book_infos(book_url, categorie['name'])
             categorie['books'].append(book_infos)
             #print("Categorie :", categorie)
             x+=1
+            break
+        return
         #print ("Livres : ",livres)    #contient les titres et leur URL uniquement
     write_csv=write_csv_categories(categories)
     print("Nombre total de livres : ", x)
