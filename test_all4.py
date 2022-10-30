@@ -6,7 +6,7 @@ import os
 import os.path
 
 #Définition des variables,listes et dictionnaires
-url = "http://books.toscrape.com/index.html" #"http://books.toscrape.com/catalogue/category/books_1/index.html"
+url = "http://books.toscrape.com/index.html"
 url_base_site="http://books.toscrape.com/"#catalogue/"
 #conversion des ratings en décimaux
 RATING_BOOK ={"One":"1", "Two":"2", "Three":"3", "Four:":"4", "Five":"5"} 
@@ -29,17 +29,12 @@ def fetch_all_categories():
             if not os.path.exists(categorie_livre):
                 os.mkdir(categorie_livre)
                 data_folder=categorie_livre+"/data"
-                #print data
                 os.mkdir(data_folder)
-                print("Catégorie créée :",categorie_livre)
             adresse_URL=data.find('a')
             adresse2=adresse_URL.get('href')
             adresse3=url_base_site+adresse2
             adresse_categorie=adresse3.replace("../","")
-            print("URL : ", adresse_categorie)#.replace("../",""))
-            #insertion dans la liste
-            #adresses.append(adresse_categorie) 
-            #insertion dans le dictionnaire
+            #print("URL : ", adresse_categorie)#.replace("../",""))
             categories.append({'name':categorie_livre, 'url': adresse_categorie, 'books':[]}) 
     return categories    
 
@@ -49,7 +44,7 @@ def fetch_all_books(url_categorie): #ds cette fct, recherche de balise <Next>
     books=[]
     response = requests.get(url_categorie)
     soup = bs(response.text, 'html.parser')
-    print("livres de la catégorie : ",books)
+    #print("livres de la catégorie : ",books)
     #EXCTRACTION DES LIVRES DE TOUTES LES CATÉGORIES
     url_des_livres=soup.find_all('li', class_="col-xs-6 col-sm-4 col-md-3 col-lg-3")
     
@@ -57,7 +52,7 @@ def fetch_all_books(url_categorie): #ds cette fct, recherche de balise <Next>
         url_livre=lien_livre.article.h3.a.get('href')
         url_livre=url_livre.replace('../../../', "http://books.toscrape.com/catalogue/")
         books.append(url_livre)
-        #print("URL : ",url_livre)#lien_livre.article.h3.a.get('href'))
+
     #RECHERCHER SI PAGE SUP
     next=soup.find('li', class_="next")
     if next!=None:
@@ -65,14 +60,13 @@ def fetch_all_books(url_categorie): #ds cette fct, recherche de balise <Next>
         print("IL Y A UNE AUTRE PAGE")
         next_page=next.find('a')
         next_page2=next_page.get('href')
-        print(next_page2)
-        #page_sup=url_categorie+next_page2
+        #print(next_page2)
         base_url=url_categorie[:url_categorie.rfind('/')]
         page_sup=f'{base_url}/{next_page2}'
-        print(page_sup)
+        #print(page_sup)
         books+=fetch_all_books (page_sup) #+= pour concaténer, récursion
     else: print("PAS AUTRE PAGE")
-    print("livres : ", books)
+    #print("livres : ", books)
     return books
 
 #EXTRACTION TOUTES LES INFOS D'UN SEUL LIVRE
@@ -93,7 +87,6 @@ def fetch_book_infos(book_url, categorie_name):
     if desc1.find('p', class_="")==None: #recherche d'absence de commentaire (Alice in Wonderland)
         desc=""
     else: desc=desc1.find('p', class_="").text
-    #print(desc)
     book['description']=desc        
     
     # PRIX
@@ -111,19 +104,15 @@ def fetch_book_infos(book_url, categorie_name):
     prix=soupBooks.find('table', class_="table table-striped")
     prix1=prix.find_all('tr')
     valeur_brute=(prix1[2].td).text
-    #print(valeur_brute)
     valeur_brute=valeur_brute[1:]
     valeur = re.findall(r'\d+\.\d+', valeur_brute)[0]
-    #print("Prix sans taxes : ", valeur)
     book['price EXCLUDING taxes']=valeur
 
     #PRICE INCLUDING TAXES
 
     valeur_brute=(prix1[3].td).text # A modifier
-    #print(valeur_brute)
     valeur_brute=valeur_brute[1:]
     valeur = re.findall(r'\d+\.\d+', valeur_brute)[0]
-    #print("Prix avec taxes : ", valeur)
     book['price INCLUDING taxes']=valeur
 
     #EXEMPLAIRES DISPOS
@@ -131,9 +120,7 @@ def fetch_book_infos(book_url, categorie_name):
     stock= soupBooks.find('table', class_="table table-striped") 
     stock1=stock.find_all('tr')
     stock2=(stock1[5].td).text
-    #print(stock2)
     quantite = re.findall(r'\d+', stock2)[0]
-    #print("Stock : ",quantite)
     book['stock']=quantite
 
     #REVIEW RATING
@@ -143,7 +130,6 @@ def fetch_book_infos(book_url, categorie_name):
     popularite3=popularite2.get('class')
     popularite4=popularite3[1]
     nbre_etoiles=RATING_BOOK.get(popularite4)
-    #print("Rating : ",nbre_etoiles)
     book['review rating']=nbre_etoiles
     
     #UPC
@@ -161,7 +147,7 @@ def fetch_book_infos(book_url, categorie_name):
     url=soupBooks.find('div', class_="item active")
     url=url.find('img').get('src')    
     file_path=url.replace('../../', url_base_site)
-    print("URL image : ",file_path)
+    #print("URL image : ",file_path)
 
     r = requests.get(file_path, stream=True)
     if r.status_code == 200:
@@ -182,14 +168,13 @@ def write_csv_categories(categories):
         with open (fichier_csv,'a', encoding='utf-8', newline='') as all:
             writer = csv.writer(all, delimiter=',')
             writer.writerow(en_tete)
-            print("Fichier écrit : ",fichier_csv)
+            #print("Fichier écrit : ",fichier_csv)
             for book in categorie['books']:
                 writer.writerow([book['title'], book['url'], book['review rating'], categorie['name'], book['description'], book['UPC'], book['price EXCLUDING taxes'], book['price INCLUDING taxes'] ])
 
 def main():
     x=0
     categories = fetch_all_categories()
-    #print("Catégories trouvées : ",categories) #'name: nom catégorie 'url': url catégorie
     for categorie in categories:
         livres=fetch_all_books(categorie['url'])
         for book_url in livres:
@@ -197,13 +182,11 @@ def main():
             categorie['books'].append(book_infos)
             #print("Categorie :", categorie)
             x+=1
-            break
-        return
+            #break
+        #return
         #print ("Livres : ",livres)    #contient les titres et leur URL uniquement
     write_csv=write_csv_categories(categories)
     print("Nombre total de livres : ", x)
-#write_csv(categories)
-
 
 if __name__ == "__main__":
     main()
