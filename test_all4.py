@@ -44,7 +44,6 @@ def fetch_all_books(url_categorie): #ds cette fct, recherche de balise <Next>
     books=[]
     response = requests.get(url_categorie)
     soup = bs(response.text, 'html.parser')
-    #print("livres de la catégorie : ",books)
     #EXCTRACTION DES LIVRES DE TOUTES LES CATÉGORIES
     url_des_livres=soup.find_all('li', class_="col-xs-6 col-sm-4 col-md-3 col-lg-3")
     
@@ -57,16 +56,13 @@ def fetch_all_books(url_categorie): #ds cette fct, recherche de balise <Next>
     next=soup.find('li', class_="next")
     if next!=None:
         #adresse page suivante
-        print("IL Y A UNE AUTRE PAGE")
         next_page=next.find('a')
         next_page2=next_page.get('href')
         #print(next_page2)
         base_url=url_categorie[:url_categorie.rfind('/')]
         page_sup=f'{base_url}/{next_page2}'
         #print(page_sup)
-        books+=fetch_all_books (page_sup) #+= pour concaténer, récursion
-    else: print("PAS AUTRE PAGE")
-    #print("livres : ", books)
+        books+=fetch_all_books (page_sup)
     return books
 
 #EXTRACTION TOUTES LES INFOS D'UN SEUL LIVRE
@@ -79,12 +75,11 @@ def fetch_book_infos(book_url, categorie_name):
 
     book['url']=book_url
     book['title']= soupBooks.find('h1').text 
-    #print ("Titre : ", book['title'])
-    
+        
     #DESCRIPION
 
     desc1=soupBooks.find('div', class_="content")
-    if desc1.find('p', class_="")==None: #recherche d'absence de commentaire (Alice in Wonderland)
+    if desc1.find('p', class_="")==None: #recherche d'absence de commentaire (le cas pour Alice in Wonderland)
         desc=""
     else: desc=desc1.find('p', class_="").text
     book['description']=desc        
@@ -147,8 +142,7 @@ def fetch_book_infos(book_url, categorie_name):
     url=soupBooks.find('div', class_="item active")
     url=url.find('img').get('src')    
     file_path=url.replace('../../', url_base_site)
-    #print("URL image : ",file_path)
-
+    
     r = requests.get(file_path, stream=True)
     if r.status_code == 200:
         image_path=file_path[file_path.rfind('/'):]
@@ -168,7 +162,6 @@ def write_csv_categories(categories):
         with open (fichier_csv,'a', encoding='utf-8', newline='') as all:
             writer = csv.writer(all, delimiter=',')
             writer.writerow(en_tete)
-            #print("Fichier écrit : ",fichier_csv)
             for book in categorie['books']:
                 writer.writerow([book['title'], book['url'], book['review rating'], categorie['name'], book['description'], book['UPC'], book['price EXCLUDING taxes'], book['price INCLUDING taxes'] ])
 
@@ -180,13 +173,7 @@ def main():
         for book_url in livres:
             book_infos=fetch_book_infos(book_url, categorie['name'])
             categorie['books'].append(book_infos)
-            #print("Categorie :", categorie)
-            x+=1
-            #break
-        #return
-        #print ("Livres : ",livres)    #contient les titres et leur URL uniquement
-    write_csv=write_csv_categories(categories)
-    print("Nombre total de livres : ", x)
+        write_csv_categories(categories)
 
 if __name__ == "__main__":
     main()
