@@ -173,7 +173,7 @@ def main():
         for book_url in livres:
             book_infos=fetch_book_infos(book_url, categorie['name'])
             categorie['books'].append(book_infos)
-        write_csv_categories(categories)
+    write_csv_categories(categories)
 
 if __name__ == "__main__":
     main()
