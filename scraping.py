@@ -25,17 +25,16 @@ def fetch_all_categories():
     for data in datas: 
         categorie_livre=data.a.text.strip()
         
-        if categorie_livre!="Add a comment":
-            if not os.path.exists(categorie_livre):
-                os.mkdir(categorie_livre)
-                data_folder=categorie_livre+"/data"
-                os.mkdir(data_folder)
-            adresse_URL=data.find('a')
-            adresse2=adresse_URL.get('href')
-            adresse3=url_base_site+adresse2
-            adresse_categorie=adresse3.replace("../","")
-            #print("URL : ", adresse_categorie)#.replace("../",""))
-            categories.append({'name':categorie_livre, 'url': adresse_categorie, 'books':[]}) 
+        
+        if not os.path.exists(categorie_livre):
+            os.mkdir(categorie_livre)
+            data_folder=categorie_livre+"/data"
+            os.mkdir(data_folder)
+        adresse_URL=data.find('a')
+        adresse2=adresse_URL.get('href')
+        adresse3=url_base_site+adresse2
+        adresse_categorie=adresse3.replace("../","")
+        categories.append({'name':categorie_livre, 'url': adresse_categorie, 'books':[]}) 
     return categories    
 
 #TITRES DES LIVRES DE TOUTES LES CATÉGORIES, CATÉGORIE PAR CATÉGORIE
@@ -58,10 +57,8 @@ def fetch_all_books(url_categorie): #ds cette fct, recherche de balise <Next>
         #adresse page suivante
         next_page=next.find('a')
         next_page2=next_page.get('href')
-        #print(next_page2)
         base_url=url_categorie[:url_categorie.rfind('/')]
         page_sup=f'{base_url}/{next_page2}'
-        #print(page_sup)
         books+=fetch_all_books (page_sup)
     return books
 
@@ -137,7 +134,7 @@ def fetch_book_infos(book_url, categorie_name):
     upc4=upc3.find('td')
     book['UPC']=upc4.text
 
-    #IMAGE URL + IMPORTATION FICHIER IMAGE
+    """#IMAGE URL + IMPORTATION FICHIER IMAGE
 
     url=soupBooks.find('div', class_="item active")
     url=url.find('img').get('src')    
@@ -149,7 +146,7 @@ def fetch_book_infos(book_url, categorie_name):
         image_path=f'{categorie_name}/data{image_path}'
         with open(image_path, 'wb') as f:
             for chunk in r.iter_content(1024):
-                f.write(chunk)
+                f.write(chunk)"""
     return book
 
 #EXPORT DANS FICHIERS CSV, UN FICHIER POUR CHAQUE CATÉGORIE
