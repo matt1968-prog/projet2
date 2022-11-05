@@ -134,7 +134,7 @@ def fetch_book_infos(book_url, categorie_name):
     upc4=upc3.find('td')
     book['UPC']=upc4.text
 
-    """#IMAGE URL + IMPORTATION FICHIER IMAGE
+    #IMAGE URL + IMPORTATION FICHIER IMAGE
 
     url=soupBooks.find('div', class_="item active")
     url=url.find('img').get('src')    
@@ -146,7 +146,7 @@ def fetch_book_infos(book_url, categorie_name):
         image_path=f'{categorie_name}/data{image_path}'
         with open(image_path, 'wb') as f:
             for chunk in r.iter_content(1024):
-                f.write(chunk)"""
+                f.write(chunk)
     return book
 
 #EXPORT DANS FICHIERS CSV, UN FICHIER POUR CHAQUE CATÉGORIE
@@ -156,7 +156,7 @@ def write_csv_categories(categories):
     for categorie in categories:
         #créer un dossier pour chaque catégorie
         fichier_csv=categorie['name']+"/"+categorie['name']+".csv"
-        with open (fichier_csv,'a', encoding='utf-8', newline='') as all:
+        with open (fichier_csv,'w', encoding='utf-8', newline='') as all:
             writer = csv.writer(all, delimiter=',')
             writer.writerow(en_tete)
             for book in categorie['books']:
